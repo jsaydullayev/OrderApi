@@ -12,8 +12,8 @@ using OrderApi.ProductProject.Context;
 namespace OrderApi.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20250424100333_ProductMigration")]
-    partial class ProductMigration
+    [Migration("20250429111356_OrderMigration")]
+    partial class OrderMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,10 +33,16 @@ namespace OrderApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeOnly>("CreatedTime")
+                    b.Property<DateTime>("CreatedTime")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("time without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("HangfireJobId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsFinishedOrder")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ProductName")
                         .IsRequired()

@@ -9,21 +9,23 @@ public class ProductRepository(ProductDbContext productDb) : IProductRepository
 
     private readonly ProductDbContext _productDb = productDb;
     
-    public async Task Add(AddProductModel model)
+    public async Task<Product> Add(AddProductModel model)
     {
         var product = new Product
         {
             Id = _productDb.Products.Count() + 1,
-            ProductName = model.ProductName,
-            CreatedTime = TimeOnly.FromDateTime(DateTime.Now)
+            ProductName = model.ProductName
         };
         await _productDb.Products.AddAsync(product);
         await _productDb.SaveChangesAsync();
+        return product;
     }
 
-    public Task<Product?> CheckById(int id)
+    public async Task<Product?> GetById(int id)
     {
         var product = _productDb.Products.FirstOrDefault(x => x.Id == id);
-        return Task.FromResult(product);
+        return product;
     }
+
+    public Task SaveChanges() => _productDb.SaveChangesAsync();
 }

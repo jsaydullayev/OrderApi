@@ -4,7 +4,9 @@ using OrderApi.ProductProject.Models;
 namespace OrderApi.ProductProject.Repository.Contract;
 public interface IProductRepository
 {
-    Task Add(AddProductModel model);
+    Task<Product> Add(AddProductModel model);
 
-    public Task<Product> CheckById(int id);
+    Task<Product> GetById(int id);
+
+    Task SaveChanges();
 }

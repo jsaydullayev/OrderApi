@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace OrderApi.Migrations
 {
     /// <inheritdoc />
-    public partial class ProductMigration : Migration
+    public partial class OrderMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,9 @@ namespace OrderApi.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProductName = table.Column<string>(type: "text", nullable: false),
-                    CreatedTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    IsFinishedOrder = table.Column<bool>(type: "boolean", nullable: false),
+                    HangfireJobId = table.Column<string>(type: "text", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {

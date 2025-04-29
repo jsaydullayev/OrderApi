@@ -1,8 +1,11 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using OrderApi.ProductProject.Context;
 using OrderApi.ProductProject.Repository;
 using OrderApi.ProductProject.Repository.Contract;
 using OrderApi.ProductProject.Services;
+using OrderApi.ProductProject.Services.Contract;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,9 +20,20 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ProductDbContext")));
 
+var connectionString = builder.Configuration.GetConnectionString("ProductDbContext");
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+    {
+        SchemaName = "hangfire" // Optional schema separation
+    }));
+
+builder.Services.AddHangfireServer(options => {
+    options.WorkerCount = Environment.ProcessorCount * 5;
+});
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<IOrderService,OrderService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

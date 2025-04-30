@@ -1,4 +1,5 @@
-﻿using OrderApi.ProductProject.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using OrderApi.ProductProject.Context;
 using OrderApi.ProductProject.Entities;
 using OrderApi.ProductProject.Models;
 using OrderApi.ProductProject.Repository.Contract;
@@ -9,7 +10,7 @@ public class ProductRepository(ProductDbContext productDb) : IProductRepository
 
     private readonly ProductDbContext _productDb = productDb;
     
-    public async Task<Product> Add(AddProductModel model)
+    public async Task<int> Add(AddProductModel model)
     {
         var product = new Product
         {
@@ -18,14 +19,14 @@ public class ProductRepository(ProductDbContext productDb) : IProductRepository
         };
         await _productDb.Products.AddAsync(product);
         await _productDb.SaveChangesAsync();
-        return product;
+        return product.Id;
     }
 
     public async Task<Product?> GetById(int id)
     {
-        var product = _productDb.Products.FirstOrDefault(x => x.Id == id);
+        var product = await _productDb.Products.FirstOrDefaultAsync(x => x.Id == id);
         return product;
     }
 
-    public Task SaveChanges() => _productDb.SaveChangesAsync();
+    public async Task SaveChanges() => await _productDb.SaveChangesAsync();
 }

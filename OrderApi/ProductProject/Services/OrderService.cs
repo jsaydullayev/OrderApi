@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using OrderApi.ProductProject.Entities;
 using OrderApi.ProductProject.Repository.Contract;
 using OrderApi.ProductProject.Services.Contract;
 using System.ComponentModel.Design.Serialization;
@@ -11,7 +12,7 @@ public class OrderService
         IProductRepository productRepository
     ) : IOrderService
 {
-    public async Task CompleteTaskAsync(int id)
+    public async Task<string> CompleteTaskAsync(int id)
     {
         var order = await productRepository.GetById(id);
         if(order == null || order.IsFinishedOrder)
@@ -19,12 +20,12 @@ public class OrderService
             if(order is not null && !string.IsNullOrEmpty(order.HangfireJobId))
                 backgroundJobClient.Delete(order.HangfireJobId);
 
-            return;
+            return "";
         }
         if (!string.IsNullOrEmpty(order.HangfireJobId))
         {
             backgroundJobClient.Delete(order.HangfireJobId);
-            logger.LogInformation($"Deleted timeout job {order.HangfireJobId} for order {order}");
+            return $"Buyurtma uchun {order} vaqt o‘chirildi: {order.HangfireJobId}";
         }
 
         order.IsFinishedOrder = true;
@@ -33,12 +34,12 @@ public class OrderService
 
         await productRepository.SaveChanges();
 
-        logger.LogInformation($"order {order} completed by user");
+        return $"order {order} muvofaqqiyatli yakunlandi";
     }
 
 
     [AutomaticRetry(Attempts = 0)]
-    public async Task MarkOrderAsFinishedAsync(int id)
+    public async Task<Tuple<Product?,string?>> MarkOrderAsFinishedAsync(int id)
     {
         var order = await productRepository.GetById(id);
 
@@ -47,7 +48,7 @@ public class OrderService
             if(order is not null && !string.IsNullOrEmpty(order.HangfireJobId))
                 backgroundJobClient.Delete(order.HangfireJobId);
 
-            return;
+            return new (null,"");
         }
 
         order.IsFinishedOrder = true;
@@ -55,16 +56,16 @@ public class OrderService
 
         await productRepository.SaveChanges();
 
-        logger.LogInformation($"order {order} automatically marked as finished after timeout");
+        return new(order,$"Buyurtma avtomatik yakunlanadi");
     }
 
-    public async Task StartOrderAsync(int id)
+    public async Task<string> StartOrderAsync(int id)
     {
         var order = await productRepository.GetById(id);
 
         if (order is null || order.IsFinishedOrder)
         {
-            return;
+            return "";
         }
 
         var jobId = backgroundJobClient.Schedule(
@@ -76,6 +77,6 @@ public class OrderService
 
         await productRepository.SaveChanges();
 
-        logger.LogInformation($"Id : {id} 3 minutdan so'ng tayyor bo'ladi. Job ID : {jobId}");
+        return ($"Id : {id} 3 minutdan so'ng tayyor bo'ladi. Job ID : {jobId}");
     }
 }

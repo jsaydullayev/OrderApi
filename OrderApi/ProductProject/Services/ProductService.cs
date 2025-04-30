@@ -10,9 +10,9 @@ public class ProductService(IProductRepository productRepository, IOrderService 
 
     public async Task<string> AddOrder(AddProductModel model)
     {
-        var product = _productRepository.Add(model);
-        await _orderService.StartOrderAsync(product.Id);
-        return $"Orderingiz 15 minutdan keyin tayyor bo'ladi.\nOrderId: {product.Id}";
+        var product = await _productRepository.Add(model);
+        var hangfire = await _orderService.StartOrderAsync(product);
+        return hangfire;
     }
 
     public async Task<object> CheckOrder(int id)
@@ -22,7 +22,7 @@ public class ProductService(IProductRepository productRepository, IOrderService 
         {
             return "Bunday order mavjud emas";
         }
-        await _orderService.CompleteTaskAsync(id);
-        return "Order tayyor";
+        var hangfire = await _orderService.MarkOrderAsFinishedAsync(id);
+        return hangfire;
     }
 }
